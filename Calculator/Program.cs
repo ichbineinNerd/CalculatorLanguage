@@ -21,6 +21,7 @@ namespace Calculator
             ScopedType,
             Pretty
         }
+        
         static void Main() {
             string input = "PI*(add(1,1)+2)";
             Token[] Tokenized = Tokenizer(input);
@@ -52,6 +53,7 @@ namespace Calculator
             Console.WriteLine("Result: " + Result);
             Console.ReadKey();
         }
+
         public static int Run(string input) {
             Token[] Tokenized = Tokenizer(input);
             SetFunctions();
@@ -59,6 +61,7 @@ namespace Calculator
             int Result = Execute(Tokenized.ToList());
             return Result;
         }
+
         static void PrintToken(Token t, PrintType printType, ref int TabCount) {
             string name = Enum.GetName(typeof(TokenType), t.type);
             switch (t.type) {
@@ -110,7 +113,9 @@ namespace Calculator
                     break;
             }
         }
+
         #endregion
+
         #region Types
         enum TokenType
         {
@@ -127,6 +132,7 @@ namespace Calculator
             VAR,
             ASSIGN
         }
+
         class Token
         {
             public TokenType type;
@@ -135,15 +141,18 @@ namespace Calculator
                 return Enum.GetName(typeof(Token), this) + " => " + data;
             }
         }
+
         class ArgumentToken : Token
         {
             public List<Token> Arguments;
         }
+
         class FunctionCallToken : Token
         {
             public Token Function;
             public ArgumentToken Arguments;
         }
+
         enum State
         {
             MIDID,
@@ -151,22 +160,27 @@ namespace Calculator
             OK,
             MIDPARAM
         }
+
         #endregion
+
         #region Helpers
         static void Between(List<Token> tokens, int start, int end, Action<int> callback) {
             for (int i = start; i <= end; i++) {
                 callback(i);
             }
         }
+
         static List<Token> GetBetween(List<Token> tokens, int start, int end) {
             List<Token> ret = new List<Token>();
             Between(tokens, start, end, (int i) => ret.Add(tokens[i]));
             return ret;
         }
+
         class UnbalancedParanthesisException : Exception
         {
             public override string Message => "Unbalanced Paranthesises";
         }
+
         static string CharArrayToString(IEnumerable<object> list) {
             string ret = "";
             foreach (object obj in list) {
@@ -174,42 +188,54 @@ namespace Calculator
             }
             return ret;
         }
+
         static int GetVar(string name) {
             if (Variables.ContainsKey(name))
                 return Variables[name];
             else
                 return 0;
         }
+
         public static void SetVal(string name, int value) {
             Variables[name] = value;
         }
         #endregion
+
         #region Setup
         static void SetFunctions() {
             AddMethod("add", (int x, int y) => { return x + y; });
         }
+
         public static void AddFunction(string name, MethodInfo method) {
             Functions[name] = method;
         }
+
         public static void AddMethod<T>(string name, Func<T> func) {
             AddFunction(name, func.Method);
         }
+
         public static void AddMethod<T, T2>(string name, Func<T, T2> func) {
             AddFunction(name, func.Method);
         }
+
         public static void AddMethod<T, T2, T3>(string name, Func<T, T2, T3> func) {
             AddFunction(name, func.Method);
         }
+
         static void AddVariable(string name, int value) {
             Variables[name] = value;
         }
-         static void SetVariables() {
+
+        static void SetVariables() {
             AddVariable("PI", 3);
         }
         #endregion
+
         #region Executer
         static Dictionary<string, int> Variables = new Dictionary<string, int>();
+
         static Dictionary<string, MethodInfo> Functions = new Dictionary<string, MethodInfo>();
+
         static int Execute(List<Token> tokens) {
             int call;
             while ((call = tokens.FindIndex((Token t) => t.type == TokenType.FUNCTIONCALL)) >= 0) {
@@ -269,6 +295,7 @@ namespace Calculator
             int result = Calculate(tokens);
             return result;
         }
+
         enum Operation
         {
             PLUS,
@@ -276,6 +303,7 @@ namespace Calculator
             MULTIPLY,
             DIVIDE
         }
+
         static int DoOP(int num1, Operation op, int num2) {
             switch (op) {
                 case Operation.PLUS:
@@ -289,6 +317,7 @@ namespace Calculator
             }
             return 0;
         }
+
         static int Calculate(List<Token> tokens) {
             int value = 0;
             Operation op = Operation.MULTIPLY;
@@ -326,6 +355,7 @@ namespace Calculator
             return value;
         }
         #endregion
+
         #region Parser
         static char[] Operators = new char[] {
         '*',
@@ -334,16 +364,20 @@ namespace Calculator
         '/',
         '%'
     };
+
         static char[] Scopes = new char[] {
         '(',
         ')'
     };
+
         static char[] Seperator = new char[] {
         ','
     };
+
         static char[] EOF = new char[] {
-        ':'
-    };
+            ':'
+        };
+
         static Token[] Tokenizer(string input) {
             input = PreProcessInput(input);
             if (input.Count((char c) => c == '(') != input.Count((char c) => c == ')'))
@@ -372,12 +406,15 @@ namespace Calculator
             }
             return list.ToArray();
         }
+
         static string PreProcessInput(string input) {
             return input + ":";
         }
+
         static void RemoveEOF(ref List<Token> input) {
             input = input.Where((Token t) => t.type != TokenType.EOF).ToList();
         }
+
         static void ParseChar(char c, ref State state, ref List<object> generic, ref List<Token> list, ref string input) {
 start:
             if (state == State.OK) {
@@ -463,6 +500,7 @@ start:
                 }
             }
         }
+
         static List<Token> ParseParam(string input) {
             string param = CharArrayToString(input.Where((char c, int i) => i != 0 && i < input.Length - 2).Cast<object>());
             param = PreProcessInput(param);
